@@ -255,8 +255,17 @@ function! s:execute(dict, command, temps)
   return s:exit_handler(v:shell_error, command) ? s:callback(a:dict, a:temps) : []
 endfunction
 
+function! s:env_var(name)
+  if exists('$'.a:name)
+    return a:name . "='". substitute(expand('$'.a:name), "'", "'\\\\''", 'g') . "' "
+  else
+    return ''
+  endif
+endfunction
+
 function! s:execute_tmux(dict, command, temps)
-  let command = a:command
+  let command = s:env_var('FZF_DEFAULT_OPTS').s:env_var('FZF_DEFAULT_COMMAND').a:command
+
   if s:pushd(a:dict)
     " -c '#{pane_current_path}' is only available on tmux 1.9 or above
     let command = 'cd '.s:escape(a:dict.dir).' && '.command
